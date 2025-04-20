@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Upload Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      text-align: center;
+      background-color: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    input[type="file"] {
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #progressContainer {
+      width: 100%;
+      background-color: #eee;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+
+    #progressBar {
+      width: 0%;
+      height: 20px;
+      background-color: green;
+      text-align: center;
+      line-height: 20px;
+      color: white;
+      border-radius: 5px;
+    }
+
+    #status {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Upload a File Anonymously</h1>
+    <input type="file" id="fileInput" />
+    <button onclick="uploadFile()">Upload</button>
+
+    <div id="progressContainer">
+      <div id="progressBar">0%</div>
+    </div>
+    <p id="status"></p>
+  </div>
+
+  <script>
+    function uploadFile() {
+      const fileInput = document.getElementById("fileInput");
+      const file = fileInput.files[0];
+      const progressBar = document.getElementById("progressBar");
+      const status = document.getElementById("status");
+
+      if (!file) {
+        status.innerText = "⚠️ Please select a file.";
+        return;
+      }
+
+      // Reset progress bar and status message
+      progressBar.style.width = "0%";
+      progressBar.innerText = "0%";
+      status.innerText = "Uploading... Please wait.";
+
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+        const base64Data = e.target.result.split(',')[1]; // Get base64 data
+    
+        // Simulating waiting bar animation
+        let progress = 0;
+        const interval = setInterval(() => {
+          if (progress < 100) {
+            progress += 5; // Increase by 5% every 100ms
+            progressBar.style.width = progress + "%";
+            progressBar.innerText = progress + "%";
+          } else {
+            clearInterval(interval); // Stop animation once 100% is reached
+          }
+        }, 100);
+
+        // Google Apps Script URL
+        const webAppUrl = "https://script.google.com/macros/s/AKfycbwfp7uuxUTIDfWhpeKayAhDBf0C_EbFv9XqQ7EQtgvRxb_GcPjECUG1WLViyJXw1OGA/exec"; // Updated URL
+
+        fetch(webAppUrl, {
+          method: "POST",
+          body: JSON.stringify({
+            filename: file.name,
+            mimeType: file.type,
+            data: base64Data,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          mode: 'no-cors'  // This disables CORS checks
+        })
+        .then((res) => {
+          status.innerText = "✅ File uploaded successfully!";
+          status.style.color = 'green';
+        })
+        .catch((err) => {
+          status.innerText = "❌ Upload failed: " + err;
+          status.style.color = 'red';
+        });
+      };
+
+      reader.readAsDataURL(file);
+    }
+  </script>
+</body>
+</html>
